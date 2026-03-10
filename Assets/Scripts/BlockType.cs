@@ -6,5 +6,6 @@ public enum BlockType
     Air,
     Sand,
     Dirt,
-    Rock
+    Rock,
+    Water
 }

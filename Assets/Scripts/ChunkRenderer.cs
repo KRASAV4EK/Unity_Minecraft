@@ -42,14 +42,12 @@ public class ChunkRenderer : MonoBehaviour
         mesh.Clear();
 
         mesh.subMeshCount = 2;
-        //mesh.vertices = meshData.vertices.Concat(meshData.waterMesh.vertices).ToArray();
-        mesh.vertices = meshData.vertices.ToArray();
+        mesh.vertices = meshData.vertices.Concat(meshData.waterMesh.vertices).ToArray();
 
         mesh.SetTriangles(meshData.triangles.ToArray(), 0);
-        //mesh.SetTriangles(meshData.waterMesh.triangles.Select(val => val + meshData.vertices.Count).ToArray(), 1);
+        mesh.SetTriangles(meshData.waterMesh.triangles.Select(val => val + meshData.vertices.Count).ToArray(), 1);
 
-        //mesh.uv = meshData.uv.Concat(meshData.waterMesh.uv).ToArray();
-        mesh.uv = meshData.uv.ToArray();
+        mesh.uv = meshData.uv.Concat(meshData.waterMesh.uv).ToArray();
         mesh.RecalculateNormals();
 
         meshCollider.sharedMesh = null;
