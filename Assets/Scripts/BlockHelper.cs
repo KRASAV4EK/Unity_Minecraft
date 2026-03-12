@@ -1,21 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public static class BlockHelper
 {
     private static Direction[] directions =
     {
-        Direction.backwards,
-        Direction.down,
         Direction.forward,
+        Direction.backwards,
         Direction.left,
         Direction.right,
-        Direction.up
+        Direction.up,
+        Direction.down
     };
 
-    public static MeshData GetMeshData
-        (ChunkData chunk, int x, int y, int z, MeshData meshData, BlockType blockType)
+    public static MeshData GetMeshData(ChunkData chunk, int x, int y, int z, MeshData meshData, BlockType blockType)
     {
         if (blockType == BlockType.Air || blockType == BlockType.Nothing)
             return meshData;
@@ -23,11 +20,10 @@ public static class BlockHelper
         foreach (Direction direction in directions)
         {
             var neighborBlockCoordinates = new Vector3Int(x, y, z) + direction.GetVector();
-            var neighborBlockType = Chunk.GetBlockFromChunkCoordinates(chunk, neighborBlockCoordinates);
+            var neighborBlockType = Chunk.GetBlockFromCoordinatesInChunk(chunk, neighborBlockCoordinates);
 
             if (neighborBlockType != BlockType.Nothing && BlockDataManager.blockTextureDataDictionary[neighborBlockType].isSolid == false)
             {
-
                 if (blockType == BlockType.Water)
                 {
                     if (neighborBlockType == BlockType.Air)
@@ -56,7 +52,8 @@ public static class BlockHelper
 
     public static void GetFaceVertices(Direction direction, int x, int y, int z, MeshData meshData, BlockType blockType)
     {
-        var generatesCollider = BlockDataManager.blockTextureDataDictionary[blockType].generatesCollider;
+        //var generatesCollider = BlockDataManager.blockTextureDataDictionary[blockType].generatesCollider;
+        var generatesCollider = true;
         //order of vertices matters for the normals and how we render the mesh
         switch (direction)
         {
