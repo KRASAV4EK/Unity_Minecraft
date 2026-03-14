@@ -1,23 +1,34 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class World : MonoBehaviour
 {
-    public int mapSizeInChunks = 12;
+
+    [SerializeField]
+    private Texture2D textureToChangeMipMap;
+
+    public int mapSizeInChunks = 24;
     public int chunkSize = 16, chunkHeight = 128;
     public int waterLevel = 50, snowLevel = 100;
-    public float noiseScale = 0.01f;
+    public float noiseScaleMin = 0.001f, noiseScaleMax = 0.02f;
+    private float noiseScale;
     
     private GameObject chunkPrefab;
+    private Transform chunksParent;
     private Dictionary<Vector3Int, ChunkData> chunkDataDictionary = new Dictionary<Vector3Int, ChunkData>();
     private Dictionary<Vector3Int, ChunkRenderer> chunkDictionary = new Dictionary<Vector3Int, ChunkRenderer>();
 
     public void Start()
     {
         chunkPrefab = Resources.Load<GameObject>("Prefabs/Chunk");
+        
+        GameObject parentObject = new GameObject("Chunks");
+        chunksParent = parentObject.transform;
+
         GenerateWorld();
     }
-
+    
     public void GenerateWorld()
     {
         chunkDataDictionary.Clear();
@@ -26,6 +37,9 @@ public class World : MonoBehaviour
             Destroy(chunk.gameObject);
         }
         chunkDictionary.Clear();
+
+        //noiseScale = UnityEngine.Random.Range(noiseScaleMin, noiseScaleMax);
+        noiseScale = noiseScaleMin;
 
         for (int x = 0; x < mapSizeInChunks; x++)
         {
@@ -40,7 +54,7 @@ public class World : MonoBehaviour
         foreach (ChunkData data in chunkDataDictionary.Values)
         {
             MeshData meshData = Chunk.GetChunkMeshData(data);
-            GameObject chunkObject = Instantiate(chunkPrefab, data.worldPosition, Quaternion.identity);
+            GameObject chunkObject = Instantiate(chunkPrefab, data.worldPosition, Quaternion.identity, chunksParent);
             ChunkRenderer chunkRenderer = chunkObject.GetComponent<ChunkRenderer>();
             chunkDictionary.Add(data.worldPosition, chunkRenderer);
             chunkRenderer.InitChunk(data);
