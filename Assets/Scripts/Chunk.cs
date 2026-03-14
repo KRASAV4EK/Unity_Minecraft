@@ -93,4 +93,9 @@ public static class Chunk
         };
         return pos;
     }
+
+    internal static Vector3Int ChunkPositionFromBlockCoords(World world, Vector3Int position)
+    {
+        return ChunkPositionFromBlockCoords((World)world, position.x, position.y, position.z);
+    }
 }

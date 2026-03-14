@@ -698,10 +698,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f996449cde346a46b842ab36b5bc514, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::World
-  textureToChangeMipMap: {fileID: 2800000, guid: d0b59ca45eff7ba4caccd9f3999bbe4c, type: 3}
-  mapSizeInChunks: 24
+  mapSizeInChunks: 12
   chunkSize: 16
   chunkHeight: 128
+  chunkDrawingRange: 8
   waterLevel: 50
   snowLevel: 100
   noiseScaleMin: 0.001

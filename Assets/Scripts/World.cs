@@ -1,28 +1,36 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
 public class World : MonoBehaviour
 {
-
-    [SerializeField]
-    private Texture2D textureToChangeMipMap;
-
     public int mapSizeInChunks = 24;
-    public int chunkSize = 16, chunkHeight = 128;
+    public int chunkSize = 16, chunkHeight = 128, chunkDrawingRange = 8;
     public int waterLevel = 50, snowLevel = 100;
     public float noiseScaleMin = 0.001f, noiseScaleMax = 0.02f;
-    private float noiseScale;
+    private float noiseScale, noiseOffsetX, noiseOffsetZ;
     
     private GameObject chunkPrefab;
     private Transform chunksParent;
-    private Dictionary<Vector3Int, ChunkData> chunkDataDictionary = new Dictionary<Vector3Int, ChunkData>();
-    private Dictionary<Vector3Int, ChunkRenderer> chunkDictionary = new Dictionary<Vector3Int, ChunkRenderer>();
 
     public UnityEvent OnWorldCreated, OnNewChunksGenerated;
 
-    public void Start()
+    public WorldData worldData { get; private set; }
+
+    private void Awake()
+    {
+        worldData = new WorldData
+        {
+            chunkHeight = this.chunkHeight,
+            chunkSize = this.chunkSize,
+            chunkDataDictionary = new Dictionary<Vector3Int, ChunkData>(),
+            chunkDictionary = new Dictionary<Vector3Int, ChunkRenderer>()
+        };
+    }
+
+public void Start()
     {
         chunkPrefab = Resources.Load<GameObject>("Prefabs/Chunk");
         
@@ -34,32 +42,27 @@ public class World : MonoBehaviour
     
     public void GenerateWorld()
     {
-        chunkDataDictionary.Clear();
-        foreach (ChunkRenderer chunk in chunkDictionary.Values)
-        {
-            Destroy(chunk.gameObject);
-        }
-        chunkDictionary.Clear();
 
         noiseScale = UnityEngine.Random.Range(noiseScaleMin, noiseScaleMax);
-        //noiseScale = noiseScaleMin;
+        noiseOffsetX = UnityEngine.Random.Range(10000f, 100000f);
+        noiseOffsetZ = UnityEngine.Random.Range(10000f, 100000f);
 
-        for (int x = 0; x < mapSizeInChunks; x++)
+        WorldGenerationData worldGenerationData = GetPositionsThatPlayerSees(Vector3Int.zero); // change to lastly saved player position
+
+        foreach (var pos in worldGenerationData.chunkDataToCreate)
         {
-            for (int z = 0; z < mapSizeInChunks; z++)
-            {
-                ChunkData data = new ChunkData(chunkSize, chunkHeight, this, new Vector3Int(x * chunkSize, 0, z * chunkSize));
-                GenerateBlocks(data);
-                chunkDataDictionary.Add(data.worldPosition, data);
-            }
+            ChunkData data = new ChunkData(chunkSize, chunkHeight, this, pos);
+            GenerateBlocks(data);
+            worldData.chunkDataDictionary.Add(pos, data);
         }
 
-        foreach (ChunkData data in chunkDataDictionary.Values)
+        foreach (var pos in worldGenerationData.chunkPositionsToCreate)
         {
+            ChunkData data = worldData.chunkDataDictionary[pos];
             MeshData meshData = Chunk.GetChunkMeshData(data);
             GameObject chunkObject = Instantiate(chunkPrefab, data.worldPosition, Quaternion.identity, chunksParent);
             ChunkRenderer chunkRenderer = chunkObject.GetComponent<ChunkRenderer>();
-            chunkDictionary.Add(data.worldPosition, chunkRenderer);
+            worldData.chunkDictionary.Add(data.worldPosition, chunkRenderer);
             chunkRenderer.InitChunk(data);
             chunkRenderer.UpdateChunk(meshData);
         }
@@ -67,6 +70,79 @@ public class World : MonoBehaviour
         OnWorldCreated?.Invoke();
     }
 
+    private WorldGenerationData GetPositionsThatPlayerSees(Vector3Int playerPosition)
+    {
+        List<Vector3Int> allChunkPositionsNeeded = GetChunkPositionsAroundPlayer(playerPosition);
+        List<Vector3Int> allChunkDataPositionsNeeded = GetDataPositionsAroundPlayer(playerPosition);
+
+        List<Vector3Int> chunkPositionsToCreate = SelectPositionsToCreate(worldData, allChunkPositionsNeeded, playerPosition);
+        List<Vector3Int> chunkDataPositionsToCreate = SelectDataPositionsToCreate(worldData, allChunkDataPositionsNeeded, playerPosition);
+
+        WorldGenerationData data = new WorldGenerationData
+        {
+            chunkPositionsToCreate = chunkPositionsToCreate,
+            chunkDataToCreate = chunkDataPositionsToCreate,
+            chunkPositionsToRemove = new List<Vector3Int>(),
+            chunkDataToRemove = new List<Vector3Int>(),
+        };
+        return data;
+    }
+
+    private List<Vector3Int> GetChunkPositionsAroundPlayer(Vector3Int playerPosition)
+    {
+        int startX = playerPosition.x - (chunkDrawingRange) * chunkSize;
+        int endX = playerPosition.x + (chunkDrawingRange) * chunkSize;
+        int startZ = playerPosition.z - (chunkDrawingRange) * chunkSize;
+        int endZ = playerPosition.z + (chunkDrawingRange) * chunkSize;
+
+        List<Vector3Int> chunkPositionsToCreate = new List<Vector3Int>();
+        for (int x = startX; x <= endX; x += chunkSize)
+        {
+            for (int z = startZ; z <= endZ; z += chunkSize)
+            {
+                Vector3Int chunkPos = Chunk.ChunkPositionFromBlockCoords(this, new Vector3Int(x, 0, z));
+                chunkPositionsToCreate.Add(chunkPos);
+            }
+        }
+
+        return chunkPositionsToCreate;
+    }
+
+    private List<Vector3Int> GetDataPositionsAroundPlayer(Vector3Int playerPosition)
+    {
+        int startX = playerPosition.x - (chunkDrawingRange + 1) * chunkSize;
+        int endX = playerPosition.x + (chunkDrawingRange + 1) * chunkSize;
+        int startZ = playerPosition.z - (chunkDrawingRange + 1) * chunkSize;
+        int endZ = playerPosition.z + (chunkDrawingRange + 1) * chunkSize;
+
+        List<Vector3Int> chunkDataPositionsToCreate = new List<Vector3Int>();
+        for (int x = startX; x <= endX; x += chunkSize)
+        {
+            for (int z = startZ; z <= endZ; z += chunkSize)
+            {
+                Vector3Int chunkPos = Chunk.ChunkPositionFromBlockCoords(this, new Vector3Int(x, 0, z));
+                chunkDataPositionsToCreate.Add(chunkPos);
+            }
+        }
+
+        return chunkDataPositionsToCreate;
+    }
+
+    private List<Vector3Int> SelectPositionsToCreate(World.WorldData worldData, List<Vector3Int> allChunkPositionsNeeded, Vector3Int playerPosition)
+    {
+        return allChunkPositionsNeeded
+            .Where(pos => worldData.chunkDictionary.ContainsKey(pos) == false)
+            .OrderBy(pos => Vector3.Distance(playerPosition, pos))
+            .ToList();
+    }
+
+    private List<Vector3Int> SelectDataPositionsToCreate(World.WorldData worldData, List<Vector3Int> allChunkDataPositionsNeeded, Vector3Int playerPosition)
+    {
+        return allChunkDataPositionsNeeded
+            .Where(pos => worldData.chunkDataDictionary.ContainsKey(pos) == false)
+            .OrderBy(pos => Vector3.Distance(playerPosition, pos))
+            .ToList();
+    }
     private void GenerateBlocks(ChunkData data)
     {
         float noiseValue;
@@ -77,8 +153,8 @@ public class World : MonoBehaviour
             for (int z = 0; z < data.chunkSize; z++)
             {
                 noiseValue = Mathf.PerlinNoise(
-                    (data.worldPosition.x + x) * noiseScale,
-                    (data.worldPosition.z + z) * noiseScale
+                    (data.worldPosition.x + x + noiseOffsetX) * noiseScale,
+                    (data.worldPosition.z + z + noiseOffsetZ) * noiseScale
                 );
 
                 groundLevel = Mathf.RoundToInt(noiseValue * chunkHeight);
@@ -140,7 +216,7 @@ public class World : MonoBehaviour
         Vector3Int pos = Chunk.ChunkPositionFromBlockCoords(this, x, y, z);
         ChunkData containerChunk = null;
 
-        chunkDataDictionary.TryGetValue(pos, out containerChunk);
+        worldData.chunkDataDictionary.TryGetValue(pos, out containerChunk);
 
         if (containerChunk == null)
             return BlockType.Nothing;
@@ -152,5 +228,21 @@ public class World : MonoBehaviour
     {
         OnNewChunksGenerated?.Invoke();
         throw new NotImplementedException();
+    }
+
+    public struct WorldGenerationData
+    {
+        public List<Vector3Int> chunkPositionsToCreate;
+        public List<Vector3Int> chunkPositionsToRemove;
+        public List<Vector3Int> chunkDataToCreate;
+        public List<Vector3Int> chunkDataToRemove;
+    }
+
+    public struct WorldData
+    {
+        public Dictionary<Vector3Int, ChunkData> chunkDataDictionary;
+        public Dictionary<Vector3Int, ChunkRenderer> chunkDictionary;
+        public int chunkSize;
+        public int chunkHeight;
     }
 }
