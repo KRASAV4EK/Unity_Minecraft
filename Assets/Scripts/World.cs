@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class World : MonoBehaviour
 {
@@ -18,6 +19,8 @@ public class World : MonoBehaviour
     private Transform chunksParent;
     private Dictionary<Vector3Int, ChunkData> chunkDataDictionary = new Dictionary<Vector3Int, ChunkData>();
     private Dictionary<Vector3Int, ChunkRenderer> chunkDictionary = new Dictionary<Vector3Int, ChunkRenderer>();
+
+    public UnityEvent OnWorldCreated, OnNewChunksGenerated;
 
     public void Start()
     {
@@ -38,8 +41,8 @@ public class World : MonoBehaviour
         }
         chunkDictionary.Clear();
 
-        //noiseScale = UnityEngine.Random.Range(noiseScaleMin, noiseScaleMax);
-        noiseScale = noiseScaleMin;
+        noiseScale = UnityEngine.Random.Range(noiseScaleMin, noiseScaleMax);
+        //noiseScale = noiseScaleMin;
 
         for (int x = 0; x < mapSizeInChunks; x++)
         {
@@ -59,8 +62,9 @@ public class World : MonoBehaviour
             chunkDictionary.Add(data.worldPosition, chunkRenderer);
             chunkRenderer.InitChunk(data);
             chunkRenderer.UpdateChunk(meshData);
-
         }
+
+        OnWorldCreated?.Invoke();
     }
 
     private void GenerateBlocks(ChunkData data)
@@ -142,5 +146,11 @@ public class World : MonoBehaviour
             return BlockType.Nothing;
         Vector3Int blockInCHunkCoordinates = Chunk.GetBlockInChunkCoordinates(containerChunk, new Vector3Int(x, y, z));
         return Chunk.GetBlockFromCoordinatesInChunk(containerChunk, blockInCHunkCoordinates);
+    }
+
+    internal void LoadAdditionalChunksRequest(GameObject player)
+    {
+        OnNewChunksGenerated?.Invoke();
+        throw new NotImplementedException();
     }
 }

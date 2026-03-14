@@ -570,7 +570,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 10, y: -13}
+  m_AnchoredPosition: {x: 451, y: -235}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1080417412
@@ -678,6 +678,7 @@ GameObject:
   - component: {fileID: 1524012072}
   - component: {fileID: 1524012071}
   - component: {fileID: 1524012073}
+  - component: {fileID: 1524012074}
   m_Layer: 0
   m_Name: World
   m_TagString: Untagged
@@ -705,6 +706,36 @@ MonoBehaviour:
   snowLevel: 100
   noiseScaleMin: 0.001
   noiseScaleMax: 0.02
+  OnWorldCreated:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1524012074}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: SpawnPlayer
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  OnNewChunksGenerated:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1524012074}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: StartCheckingTheMap
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &1524012072
 Transform:
   m_ObjectHideFlags: 0
@@ -733,63 +764,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BlockDataManager
   textureData: {fileID: 11400000, guid: 6747d3b3c13b0604cb30553f71318482, type: 2}
---- !u!1001 &1765894237
-PrefabInstance:
+--- !u!114 &1524012074
+MonoBehaviour:
   m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 4526274953486296466, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_Name
-      value: Player
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 150.879
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 66.683
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 216.137
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5811527535639979650, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1524012070}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 111a48f4cece932459b9c93a14f28b29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  playerPrefab: {fileID: 4526274953486296466, guid: 805076eaed4dbe049a61be090625ec98, type: 3}
+  currentPlayerChunkPosition: {x: 0, y: 0, z: 0}
+  world: {fileID: 1524012071}
+  detectionTime: 1
 --- !u!1 &2087406169
 GameObject:
   m_ObjectHideFlags: 0
@@ -878,4 +868,3 @@ SceneRoots:
   - {fileID: 1524012072}
   - {fileID: 739147199}
   - {fileID: 2087406172}
-  - {fileID: 1765894237}
